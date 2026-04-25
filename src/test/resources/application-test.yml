@@ -1,0 +1,12 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: data
+    open-in-view: false
+  flyway:
+    schemas: data
+    default-schema: data
+    baseline-on-migrate: true

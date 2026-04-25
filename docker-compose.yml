@@ -1,0 +1,55 @@
+version: "3.9"
+
+# Local development only — production stack lives in trackIT-infrastructure
+
+services:
+  data-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: data_db
+      POSTGRES_USER: data_user
+      POSTGRES_PASSWORD: data_pass
+    volumes:
+      - data_db_volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U data_user -d data_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+
+  data-service:
+    build: .
+    image: florinionita/trackit-data-service:local
+    depends_on:
+      data-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DATA_DB_URL: jdbc:postgresql://data-db:5432/data_db
+      DATA_DB_USER: data_user
+      DATA_DB_PASSWORD: data_pass
+    ports:
+      - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@trackit.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - data-db
+    profiles:
+      - debug
+
+volumes:
+  data_db_volume:

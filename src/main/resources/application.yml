@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: data-service
+  datasource:
+    url: ${DATA_DB_URL:jdbc:postgresql://localhost:5432/data_db}
+    username: ${DATA_DB_USER:data_user}
+    password: ${DATA_DB_PASSWORD:data_pass}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: data
+    open-in-view: false
+  flyway:
+    schemas: data
+    default-schema: data
+    baseline-on-migrate: true
+
+server:
+  port: 8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: ${DATA_DB_URL}
+    username: ${DATA_DB_USER}
+    password: ${DATA_DB_PASSWORD}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/test_db}
+    username: ${TEST_DB_USER:test_user}
+    password: ${TEST_DB_PASSWORD:test_pass}
+  flyway:
+    baseline-on-migrate: true
