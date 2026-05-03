@@ -6,13 +6,13 @@ services:
   data-db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: data_db
-      POSTGRES_USER: data_user
-      POSTGRES_PASSWORD: data_pass
+      POSTGRES_DB: ${DATA_DB_NAME:-data_db}
+      POSTGRES_USER: ${DATA_DB_USER:-data_user}
+      POSTGRES_PASSWORD: ${DATA_DB_PASSWORD}
     volumes:
       - data_db_volume:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U data_user -d data_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATA_DB_USER:-data_user} -d ${DATA_DB_NAME:-data_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,9 +27,9 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DATA_DB_URL: jdbc:postgresql://data-db:5432/data_db
-      DATA_DB_USER: data_user
-      DATA_DB_PASSWORD: data_pass
+      DATA_DB_URL: ${DATA_DB_URL}
+      DATA_DB_USER: ${DATA_DB_USER:-data_user}
+      DATA_DB_PASSWORD: ${DATA_DB_PASSWORD}
     ports:
       - "8083:8083"
     healthcheck:
@@ -42,8 +42,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@trackit.local
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@trackit.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "5050:80"
     depends_on:
